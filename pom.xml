@@ -28,8 +28,8 @@
                     <target>https://api.cronapp.io</target>
                     <org>cronapptreina@gmail.com</org>
                     <space>develop</space>
-                    <appname>postoTreina</appname>
-                    <url>postotreina.cronapp.io</url>
+                    <appname>postoDesign</appname>
+                    <url>postodesign.cronapp.io</url>
                     <instances>1</instances>
                     <memory>512</memory>
                     <username/>
@@ -184,20 +184,20 @@
         <dependency>
             <groupId>io.cronapp</groupId>
             <artifactId>cronapi-java</artifactId>
-            <version>0.0.82-beta</version>
+            <version>0.0.90-d-s-b</version>
         </dependency>
         <dependency>
             <groupId>io.cronapp</groupId>
             <artifactId>cronapp-framework-java</artifactId>
-            <version>0.0.28-beta</version>
+            <version>0.0.31-d-s-b</version>
         </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.cronospass.resource mimetype="folder/src">src/main/java</project.cronospass.resource>
+        <project.cronospass.resource mimetype="folder/libs">lib</project.cronospass.resource>
         <project.cronospass.resource mimetype="folder/servercontext">config</project.cronospass.resource>
         <project.cronospass.resource mimetype="folder/web">src/main/webapp</project.cronospass.resource>
-        <project.cronospass.resource mimetype="folder/libs">lib</project.cronospass.resource>
+        <project.cronospass.resource mimetype="folder/src">src/main/java</project.cronospass.resource>
     </properties>
 </project>

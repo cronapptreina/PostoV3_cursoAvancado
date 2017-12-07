@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 @ComponentScan(basePackages = {
 	"cronapp.framework.authentication.normal",
@@ -21,6 +23,11 @@ import org.springframework.context.annotation.ComponentScan;
 })
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
 public class SpringBootMain extends SpringBootServletInitializer {
+
+    static {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootMain.class, args);

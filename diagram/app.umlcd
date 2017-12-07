@@ -26,6 +26,7 @@
         "put": "authenticated",
         "delete": "authenticated"
       },
+      "generationType": "drop-and-create-tables",
       "attrs": {}
     },
     {
@@ -452,8 +453,8 @@
       ],
       "methods": [],
       "position": {
-        "x": 548,
-        "y": 60
+        "x": 491,
+        "y": 57
       },
       "size": {
         "width": 170.71875,
@@ -507,7 +508,7 @@
           "mask": "AAA-9999",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -530,7 +531,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -553,7 +554,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -576,7 +577,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -599,7 +600,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -927,12 +928,12 @@
       ],
       "methods": [],
       "position": {
-        "x": 434,
-        "y": 308
+        "x": 455,
+        "y": 276
       },
       "size": {
-        "width": 184,
-        "height": 162.578125
+        "width": 183.84375,
+        "height": 162.1875
       },
       "angle": 0,
       "multitenantContextJsonIgnore": "false",
@@ -979,10 +980,10 @@
           "dbScale": "",
           "dbDefaultValue": "new Date()",
           "label": "Data",
-          "mask": "",
+          "mask": "DD/MM/YYYY",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1005,7 +1006,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1025,10 +1026,10 @@
           "dbScale": 2,
           "dbDefaultValue": "",
           "label": "Valor",
-          "mask": "",
+          "mask": "#.##0,00;0",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1048,10 +1049,10 @@
           "dbScale": 2,
           "dbDefaultValue": "",
           "label": "Preco Litro",
-          "mask": "",
+          "mask": "0,00;0",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1074,7 +1075,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1083,7 +1084,7 @@
           "isUpdatable": true,
           "isEncryption": false,
           "referencedColumnName": "",
-          "isSearchable": false
+          "isSearchable": true
         },
         {
           "name": "posto",
@@ -1097,7 +1098,7 @@
           "mask": "",
           "isPrimaryKey": false,
           "isUniqueKey": false,
-          "isNullable": true,
+          "isNullable": false,
           "pkType": "",
           "multitenantContext": "",
           "jsonIgnore": false,
@@ -1106,7 +1107,7 @@
           "isUpdatable": true,
           "isEncryption": false,
           "referencedColumnName": "",
-          "isSearchable": false
+          "isSearchable": true
         }
       ],
       "runtimeClass": "cronos.widgets.joint.uml.Class",
@@ -1139,7 +1140,7 @@
           "text": "id\ndata\nkm\nvalor\nprecoLitro\ncarro\nposto\n"
         },
         ".uml-class-attrs-value": {
-          "ref-x": 83.984375,
+          "ref-x": 83.90625,
           "font-size": 11,
           "text": "java.lang.String\njava.util.Date\njava.lang.Double\njava.lang.Double\njava.lang.Double\nCarro\nPosto\n"
         },

@@ -2,7 +2,7 @@
 <div ng-hide="Abastecimento.inserting || Abastecimento.editing" data-component="crn-datasource-filter" id="crn-datasource-filter-general">
   <div class="form-group">
     <label for="textinput-filter" class="">{{"template.crud.search" | translate}}</label>
-    <input cronapp-filter="carro.placa;posto.nome" crn-datasource="Abastecimento" class="form-control" value="" placeholder="{search}" type="text" ___placeholder="{{'template.crud.search' | translate}}">
+    <input cronapp-filter="carro.placa;posto.nome" crn-datasource="Abastecimento" class="form-control" value="" placeholder="{search}" type="text" ______placeholder="{{'template.crud.search' | translate}}">
   </div>
 </div>
 <br>
@@ -43,7 +43,7 @@
       <tbody>
         <tr class="table-content" ng-repeat="rowData in datasource.data">
           <td class="">
-            <div class="">{{rowData.data | date:'dd/MM/yyyy '}}</div>
+            <div class="">{{rowData.data}}</div>
           </td>
           <td class="">
             <div class="">

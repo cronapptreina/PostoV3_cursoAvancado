@@ -1,5 +1,7 @@
 (function($app) {
 
+  var isoDate = /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/;
+
   /**
    * Função que retorna o formato que será utilizado no componente
    * capturando o valor do atributo format do elemento, para mais formatos
@@ -50,96 +52,7 @@
     return result;
   }
 
-  /**
-   * Em todo elemento que possuir o atibuto as-date será
-   * aplicado o componente Datetimepicker (http://eonasdan.github.io/bootstrap-datetimepicker/)
-   *
-   * O componente se adequa de acordo com o formato, definido através do atributo format
-   * espeficado no elemento.
-   * Para data simples use format="DD/MMM/YYYY", para data e hora use format="DD/MM/YYYY HH:mm:ss"
-   *
-   * @see http://eonasdan.github.io/bootstrap-datetimepicker/
-   */
-  app.directive('asDate', function() {
-    return {
-      require: '^ngModel',
-      restrict: 'A',
-      link: function(scope, element, attrs, ngModel) {
-        debugger;
-        if (!ngModel) {
-          return;
-        }
-
-        var format = patternFormat(element);
-
-        var options = {
-          format: format,
-          locale: 'pt-BR',
-          showTodayButton: true,
-          useStrict: true,
-          tooltips: {
-            today: 'Hoje',
-            clear: 'Limpar seleção',
-            close: 'Fechar',
-            selectMonth: 'Selecionar mês',
-            prevMonth: 'Mês anterior',
-            nextMonth: 'Próximo mês',
-            selectYear: 'Selecionar ano',
-            prevYear: 'Ano anterior',
-            nextYear: 'Próximo ano',
-            selectDecade: 'Selecionar década',
-            prevDecade: 'Década anterior',
-            nextDecade: 'Próxima década',
-            prevCentury: 'Século anterior',
-            nextCentury: 'Próximo século'
-          }
-        };
-
-        if (format != 'DD/MM/YYYY') {
-          options.sideBySide = true;
-        }
-
-        element.datetimepicker(options);
-
-        element.on('dp.change', function() {
-          if ($(this).is(":visible")) {
-            $(this).trigger('change');
-            scope.$apply(read);
-          }
-        });
-
-        ngModel.$render = function() {
-          if(ngModel.$viewValue){
-            var momentDate = moment(ngModel.$viewValue);
-
-            if(momentDate.isValid()){
-              element.val( momentDate.format(patternFormat(element)));
-            }else{
-              var dateInMilliseconds = parseInt(ngModel.$viewValue, 10);
-              momentDate = moment(dateInMilliseconds);
-              if(momentDate.isValid()){
-                element.val( momentDate.format(patternFormat(element)));
-              }else{
-                element.val('');
-              }
-            }
-          }else{
-            element.data("DateTimePicker").clear();
-            element.val('');
-          }
-        }
-
-        read();
-
-        function read() {
-          var value = element.val();
-          var momentDate = moment(value, patternFormat(element));
-          if (momentDate.isValid())
-            ngModel.$setViewValue(momentDate.toDate());
-        }
-      }
-    };
-  })
+  app.directive('asDate', maskDirectiveAsDate)
 
       .directive('ngDestroy', function() {
         return {
@@ -201,6 +114,7 @@
           link: function(scope, element, attr) {
             this.init(scope);
             var s = scope;
+            var required = (attr.ngRequired && attr.ngRequired == "true"?"required":"");
             var templateDyn    = '<div class="form-group upload-image-component" ngf-drop="" ngf-drag-over-class="dragover">\
                                   <img class="$class$" style="$style$; height: $height$; width: $width$;" ng-if="$ngModel$" data-ng-src="{{$ngModel$.startsWith(\'http\') || ($ngModel$.startsWith(\'/\') && $ngModel$.length < 1000)? $ngModel$ : \'data:image/png;base64,\' + $ngModel$}}">\
                                   <img class="$class$" style="$style$; height: $height$; width: $width$;" ng-if="!$ngModel$" data-ng-src="/plugins/cronapp-framework-js/img/selectImg.svg" class="btn" ng-if="!$ngModel$" ngf-drop="" ngf-select="" ngf-change="cronapi.internal.setFile(\'$ngModel$\', $file)" accept="image/*;capture=camera">\
@@ -210,6 +124,7 @@
                                   <div class="btn btn-info btn-xs start-camera-button" ng-if="!$ngModel$" ng-click="cronapi.internal.startCamera(\'$ngModel$\')">\
                                     <span class="glyphicon glyphicon-facetime-video"></span>\
                                   </div>\
+                                  <input ng-if="!$ngModel$" autocomplete="off" tabindex="-1" class="uiSelectRequired ui-select-offscreen" style="top: inherit !important; margin-left: 85px !important;margin-top: 50px !important;" type=text ng-model="$ngModel$" $required$>\
                                 </div>';
             element.append(templateDyn
                 .split('$height$').join(s.height)
@@ -217,7 +132,10 @@
                 .split('$ngModel$').join(s.ngModel)
                 .split('$style$').join(s.style)
                 .split('$class$').join(s.class)
+                .split('$required$').join(required)
             );
+
+
             $compile(element)(element.scope());
           }
         }
@@ -239,13 +157,16 @@
           link: function(scope, element, attr) {
             this.init(scope);
             var s = scope;
+            var required = (attr.ngRequired && attr.ngRequired == "true"?"required":"");
 
             var splitedNgModel = s.ngModel.split('.');
             var datasource = splitedNgModel[0];
             var field = splitedNgModel[splitedNgModel.length-1];
             var number = Math.floor((Math.random() * 1000) + 20);
 
-            var templateDyn    = '<div ng-show="!$ngModel$">\
+            var templateDyn    = '\
+                                <div ng-show="!$ngModel$">\
+                                  <input ng-if="!$ngModel$" autocomplete="off" tabindex="-1" class="uiSelectRequired ui-select-offscreen" style="top: inherit !important;margin-left: 85px !important;margin-top: 50px !important;" type=text ng-model="$ngModel$" $required$>\
                                   <div class="form-group upload-image-component" ngf-drop="" ngf-drag-over-class="dragover"> \
                                     <img class="ng-scope" style="height: 128px; width: 128px;" ng-if="!$ngModel$" data-ng-src="/plugins/cronapp-framework-js/img/selectFile.png" ngf-drop="" ngf-select="" ngf-change="cronapi.internal.uploadFile(\'$ngModel$\', $file, \'uploadprogress$number$\')" accept="*">\
                                     <progress id="uploadprogress$number$" max="100" value="0" style="position: absolute; width: 128px; margin-top: -134px;">0</progress>\
@@ -259,12 +180,14 @@
                                     <div ng-bind-html="cronapi.internal.generatePreviewDescriptionByte($ngModel$)"></div> \
                                     <a href="javascript:void(0)" ng-click="cronapi.internal.downloadFileEntity($datasource$,\'$field$\')">download</a> \
                                   </div> \
-                                </div> ';
+                                </div> \
+                                ';
             element.append(templateDyn
                 .split('$ngModel$').join(s.ngModel)
                 .split('$datasource$').join(datasource)
                 .split('$field$').join(field)
                 .split('$number$').join(number)
+                .split('$required$').join(required)
             );
             $compile(element)(element.scope());
           }
@@ -365,177 +288,36 @@
         };
       })
 
-      .filter('mask',function() {
+      .filter('mask',function($translate) {
         return function(value, maskValue) {
-          var input = $("<input type=\"text\">");
-          if (value instanceof Date) {
-            return moment(value).format(maskValue);
+          maskValue = parseMaskType(maskValue, $translate);
+          if (!maskValue)
+            return value;
+
+          maskValue = maskValue.replace(';1', '').replace(';0', '').trim();
+
+          if (typeof value == "string" && value.match(isoDate)) {
+            return moment.utc(value).format(maskValue);
+          } else if (value instanceof Date) {
+            return moment.utc(value).format(maskValue);
           } else {
+            var input = $("<input type=\"text\">");
             input.mask(maskValue);
             return input.masked(value);;
           }
         };
       })
 
-      .directive('mask', function ($compile) {
-        return {
-          restrict: 'A',
-          require: 'ngModel',
-          link: function (scope, element, attrs, ngModelCtrl) {
-
-            var $element = $(element);
-
-            var type = $element.attr("type");
-
-            $element.attr("type", "text");
-            ngModelCtrl.$formatters = [];
-            ngModelCtrl.$parsers = [];
-
-            var textMask = true;
-
-            var removeMask = false;
-
-            if (attrs.mask.endsWith(";0")) {
-              removeMask = true;
-            }
-
-            var mask = attrs.mask.replace(';1', '').replace(';0', '').trim();
-            if (type == 'date' || type == 'datetime-local') {
-
-              var options = {
-                format: mask,
-                locale: 'pt-BR',
-                showTodayButton: true,
-                useStrict: true,
-                tooltips: {
-                  today: 'Hoje',
-                  clear: 'Limpar seleção',
-                  close: 'Fechar',
-                  selectMonth: 'Selecionar mês',
-                  prevMonth: 'Mês anterior',
-                  nextMonth: 'Próximo mês',
-                  selectYear: 'Selecionar ano',
-                  prevYear: 'Ano anterior',
-                  nextYear: 'Próximo ano',
-                  selectDecade: 'Selecionar década',
-                  prevDecade: 'Década anterior',
-                  nextDecade: 'Próxima década',
-                  prevCentury: 'Século anterior',
-                  nextCentury: 'Próximo século'
-                }
-              };
-
-              if (mask != 'DD/MM/YYYY') {
-                options.sideBySide = true;
-              }
-
-              $element.datetimepicker(options);
-
-              $element.on('dp.change', function() {
-                if ($(this).is(":visible")) {
-                  $(this).trigger('change');
-                  scope.$apply(function() {
-                    var value = $element.val();
-                    var momentDate = moment(value, mask);
-                    if (momentDate.isValid())
-                      ngModelCtrl.$setViewValue(momentDate.toDate());
-                  });
-                }
-              });
-
-              ngModelCtrl.$formatters.push(function(value) {
-                return moment(value).format(mask);
-              });
-
-              ngModelCtrl.$parsers.push(function(value) {
-                return moment(value, mask).toDate();
-              });
-
-            } else if (type == 'number') {
-              removeMask = true;
-              textMask = false;
-
-              var currency = mask.trim().replace(/\./g, '').replace(/\,/g, '').replace(/#/g, '').replace(/0/g, '').replace(/9/g, '');
-
-              var prefix = '';
-              var suffix = '';
-              var thousands = '';
-              var decimal = ',';
-              var precision = 0;
-
-              if (mask.startsWith(currency)) {
-                prefix = currency;
-              }
-
-              else if (mask.endsWith(currency)) {
-                suffix = currency;
-              }
-
-              var pureMask = mask.trim().replace(prefix, '').replace(suffix, '').trim();
-
-              if (pureMask.startsWith("#.")) {
-                thousands = '.';
-              }
-              else if (pureMask.startsWith("#,")) {
-                thousands = ',';
-              }
-
-              var dMask = null;
-
-              if (pureMask.indexOf(",0") != -1) {
-                decimal = ',';
-                dMask = ",0";
-              }
-              else if (pureMask.indexOf(".0") != -1) {
-                decimal = '.';
-                dMask = ".0";
-              }
-
-              if (dMask != null) {
-                var strD = pureMask.substring(pureMask.indexOf(dMask)+1);
-                precision = strD.length;
-              }
-
-
-              $(element).maskMoney({'allowZero': false, 'prefix':prefix, 'suffix':suffix, 'allowNegative': true, 'thousands':thousands, 'decimal':decimal, 'precision': precision});
-
-              ngModelCtrl.$formatters.push(function(value) {
-                $element.maskMoney('mask', value);
-                var num = $element.val();
-                return num;
-              });
-
-              ngModelCtrl.$parsers.push(function(value) {
-                return $element.maskMoney('unmasked')[0];
-              });
-
-            }
-
-            else if (type == 'text') {
-
-              $element.mask(mask);
-
-              if (removeMask) {
-                ngModelCtrl.$formatters.push(function(value) {
-                  var v = $element.masked(value);
-                  return v;
-                });
-
-                ngModelCtrl.$parsers.push(function(value) {
-                  var v = $element.cleanVal();
-                  return v;
-                });
-              }
-            }
-          }
-        };
-      })
+      .directive('mask', maskDirectiveMask)
 
       .directive('cronappFilter', function() {
         return {
           restrict: 'A',
-          link: function(scope, element, attrs) {
-            var typeElement = $(element).attr('type');
+          require: '?ngModel',
+          link: function(scope, element, attrs, ngModelCtrl) {
+            var $element = $(element);
+
+            var typeElement = $element.data('type') || $element.attr('type');
             if (attrs.asDate != undefined)
               typeElement = 'date';
 
@@ -556,45 +338,406 @@
             else
               filterTemplate = '%{value}%';
 
-            if (typeElement == 'text') {
-              $(element).on("keyup", function() {
-                var datasource = eval(attrs.crnDatasource);
-                var bindedFilter = filterTemplate.split('{value}').join(this.value);
-                if (this.value.length == 0)
-                  bindedFilter = '';
+            if (ngModelCtrl) {
+              scope.$watch(attrs.ngModel, function(newVal, oldVal) {
+                if (angular.equals(newVal, oldVal)) { return; }
+                var eType = $(element).data('type') || $(element).attr('type');
 
+                var datasource = eval(attrs.crnDatasource);
+                var value = ngModelCtrl.$modelValue;
+
+                if (value instanceof Date) {
+                  value = value.toISOString();
+                  if (eType == "date") {
+                    value = value + "@@date";
+                  }
+                  else if (eType == "time" || eType == "time-local") {
+                    value = value + "@@time";
+                  }
+                  else {
+                    value = value + "@@datetime";
+                  }
+                }
+
+                else if (typeof value == "number") {
+                  value = value + "@@number";
+                }
+
+                else if (typeof value == "boolean") {
+                  value = value + "@@boolean";
+                }
+
+                var bindedFilter = filterTemplate.split('{value}').join(value);
+                if (ngModelCtrl.$viewValue.length == 0)
+                  bindedFilter = '';
                 datasource.search(bindedFilter);
               });
             }
             else {
-              $(element).on("change", function() {
-                var datasource = eval(attrs.crnDatasource);
+              if (typeElement == 'text') {
+                $(element).on("keyup", function() {
+                  var value = undefined;
+                  if (ngModelCtrl && ngModelCtrl != undefined)
+                    value = ngModelCtrl.$viewValue;
+                  else
+                    value = this.value;
+                  var datasource = eval(attrs.crnDatasource);
+                  var bindedFilter = filterTemplate.split('{value}').join(value);
+                  if (this.value.length == 0)
+                    bindedFilter = '';
 
-                var value = undefined;
-                var typeElement = $(this).attr('type');
-                if (attrs.asDate != undefined)
-                  typeElement = 'date';
+                  datasource.search(bindedFilter);
+                });
+              }
+              else {
+                $element.on("change", function() {
+                  var datasource = eval(attrs.crnDatasource);
 
-                if (typeElement == 'checkbox')
-                  value = $(this).is(':checked');
-                else if (typeElement == 'date') {
-                  value = this.value;
-                  if (this.value.length > 0) {
-                    var momentDate = moment(this.value, patternFormat(this));
-                    value = momentDate.toDate().toISOString();
+                  var value = undefined;
+                  var typeElement = $(this).attr('type');
+                  if (attrs.asDate != undefined)
+                    typeElement = 'date';
+
+                  if (ngModelCtrl && ngModelCtrl != undefined) {
+                    value = ngModelCtrl.$viewValue;
                   }
-                }
-                else
-                  value = this.value;
-
-                var bindedFilter = filterTemplate.split('{value}').join(value);
-                if (value.toString().length == 0)
-                  bindedFilter = '';
-                datasource.search(bindedFilter);
-              });
+                  else {
+                    if (typeElement == 'checkbox')
+                      value = $(this).is(':checked');
+                    else if (typeElement == 'date') {
+                      value = this.value;
+                      if (this.value.length > 0) {
+                        var momentDate = moment(this.value, patternFormat(this));
+                        value = momentDate.toDate().toISOString();
+                      }
+                    }
+                    else
+                      value = this.value;
+                  }
+                  var bindedFilter = filterTemplate.split('{value}').join(value);
+                  if (value.toString().length == 0)
+                    bindedFilter = '';
+                  datasource.search(bindedFilter);
+                });
+              }
             }
 
           }
         }
       })
 }(app));
+
+function maskDirectiveAsDate($compile, $translate) {
+  return maskDirective($compile, $translate, 'as-date');
+}
+
+function maskDirectiveMask($compile, $translate) {
+  return maskDirective($compile, $translate, 'mask');
+}
+
+function maskDirective($compile, $translate, attrName) {
+  return {
+    restrict: 'A',
+    require: '?ngModel',
+    link: function (scope, element, attrs, ngModelCtrl) {
+      if(attrName == 'as-date' && attrs.mask !== undefined)
+        return;
+
+
+      var $element = $(element);
+
+      var type = $element.attr("type");
+
+      if (type == "checkbox" || type == "password")
+        return;
+
+      $element.data("type", type);
+
+      $element.attr("type", "text");
+
+      if (ngModelCtrl) {
+        ngModelCtrl.$formatters = [];
+        ngModelCtrl.$parsers = [];
+      }
+
+      if (attrs.asDate !== undefined && type == 'text')
+        type = "date";
+
+      var textMask = true;
+
+      var removeMask = false;
+
+      var attrMask = attrs.mask || attrs.format;
+
+      if (!attrMask) {
+        attrMask = parseMaskType(type, $translate);
+      } else {
+        attrMask = parseMaskType(attrMask, $translate);
+      }
+
+      if (attrMask.endsWith(";0")) {
+        removeMask = true;
+      }
+
+      var mask = attrMask.replace(';1', '').replace(';0', '').trim();
+      if (mask == undefined || mask.length == 0) {
+        return;
+      }
+
+      if (type == 'date' || type == 'datetime' || type == 'datetime-local' || type == 'month' || type == 'time' || type == 'time-local' || type == 'week') {
+
+        var options = {
+          format: mask,
+          locale: $translate.use(),
+          showTodayButton: true,
+          useStrict: true,
+          tooltips: {
+            today: $translate.instant('DatePicker.today'),
+            clear: $translate.instant('DatePicker.clear'),
+            close: $translate.instant('DatePicker.close'),
+            selectMonth: $translate.instant('DatePicker.selectMonth'),
+            prevMonth: $translate.instant('DatePicker.prevMonth'),
+            nextMonth: $translate.instant('DatePicker.nextMonth'),
+            selectYear: $translate.instant('DatePicker.selectYear'),
+            prevYear: $translate.instant('DatePicker.prevYear'),
+            nextYear: $translate.instant('DatePicker.nextYear'),
+            selectDecade: $translate.instant('DatePicker.selectDecade'),
+            prevDecade: $translate.instant('DatePicker.prevDecade'),
+            nextDecade: $translate.instant('DatePicker.nextDecade'),
+            prevCentury: $translate.instant('DatePicker.prevCentury'),
+            nextCentury: $translate.instant('DatePicker.nextCentury')
+          }
+        };
+
+        if (mask != 'DD/MM/YYYY' && mask != 'MM/DD/YYYY') {
+          options.sideBySide = true;
+        }
+
+        $element.wrap("<div style=\"position:relative\"></div>")
+        $element.datetimepicker(options);
+
+        var useUTC = type == 'date' || type == 'datetime' || type == 'time';
+
+        $element.on('dp.change', function () {
+          if ($(this).is(":visible")) {
+            $(this).trigger('change');
+            scope.$apply(function () {
+              var value = $element.val();
+              var momentDate = null;
+              if (useUTC) {
+                momentDate = moment.utc(value, mask);
+              } else {
+                momentDate = moment(value, mask);
+              }
+              if (momentDate.isValid() && ngModelCtrl)
+                ngModelCtrl.$setViewValue(momentDate.toDate());
+            });
+          }
+        });
+
+        if (ngModelCtrl) {
+          ngModelCtrl.$formatters.push(function (value) {
+            if (value) {
+              var momentDate = null;
+
+              if (useUTC) {
+                momentDate = moment.utc(value);
+              } else {
+                momentDate = moment(value);
+              }
+
+              return momentDate.format(mask);
+            }
+
+            return null;
+          });
+
+          ngModelCtrl.$parsers.push(function (value) {
+            if (value) {
+              var momentDate = null;
+              if (useUTC) {
+                momentDate = moment.utc(value, mask);
+              } else {
+                momentDate = moment(value, mask);
+              }
+              return momentDate.toDate();
+            }
+
+            return null;
+          });
+        }
+
+      } else if (type == 'number' || type == 'money' || type == 'integer') {
+        removeMask = true;
+        textMask = false;
+
+        var currency = mask.trim().replace(/\./g, '').replace(/\,/g, '').replace(/#/g, '').replace(/0/g, '').replace(/9/g, '');
+
+        var prefix = '';
+        var suffix = '';
+        var thousands = '';
+        var decimal = ',';
+        var precision = 0;
+
+        if (mask.startsWith(currency)) {
+          prefix = currency;
+        }
+
+        else if (mask.endsWith(currency)) {
+          suffix = currency;
+        }
+
+        var pureMask = mask.trim().replace(prefix, '').replace(suffix, '').trim();
+
+        if (pureMask.startsWith("#.")) {
+          thousands = '.';
+        }
+        else if (pureMask.startsWith("#,")) {
+          thousands = ',';
+        }
+
+        var dMask = null;
+
+        if (pureMask.indexOf(",0") != -1) {
+          decimal = ',';
+          dMask = ",0";
+        }
+        else if (pureMask.indexOf(".0") != -1) {
+          decimal = '.';
+          dMask = ".0";
+        }
+
+        if (dMask != null) {
+          var strD = pureMask.substring(pureMask.indexOf(dMask) + 1);
+          precision = strD.length;
+        }
+
+
+        var inputmaskType = 'numeric';
+
+        if (precision == 0)
+          inputmaskType = 'integer';
+
+        var ipOptions = {
+          'rightAlign':  (type == 'money'),
+          'unmaskAsNumber': true,
+          'allowMinus': true,
+          'prefix': prefix,
+          'suffix': suffix,
+          'radixPoint': decimal,
+          'digits': precision
+        };
+
+        if (thousands) {
+          ipOptions['autoGroup'] = true;
+          ipOptions['groupSeparator'] = thousands;
+        }
+
+        $(element).inputmask(inputmaskType, ipOptions);
+
+        if (ngModelCtrl) {
+          ngModelCtrl.$formatters.push(function (value) {
+            if (value != undefined && value != null) {
+              $element.inputmask('setvalue', value);
+              var num = $element.val();
+              return num;
+            }
+
+            return null;
+          });
+
+          ngModelCtrl.$parsers.push(function (value) {
+            if (value != undefined && value != null) {
+              return $element.inputmask('unmaskedvalue');
+            }
+
+            return null;
+          });
+        }
+
+      }
+
+      else if (type == 'text' || type == 'tel') {
+
+        var options = {};
+        if (attrs.maskPlaceholder) {
+          options.placeholder = attrs.maskPlaceholder
+        }
+
+        $element.mask(mask, options);
+
+        if (removeMask && ngModelCtrl) {
+          ngModelCtrl.$formatters.push(function (value) {
+            if (value) {
+              return $element.masked(value);
+            }
+
+            return null;
+          });
+
+          ngModelCtrl.$parsers.push(function (value) {
+            if (value) {
+              return $element.cleanVal();
+            }
+
+            return null;
+          });
+        }
+      }
+    }
+  }
+}
+
+function parseMaskType(type, $translate) {
+  if (type == "datetime" || type == "datetime-local") {
+    type = $translate.instant('Format.DateTime');
+    if (type == 'Format.DateTime')
+      type = 'DD/MM/YYYY HH:mm:ss'
+  }
+
+  else if (type == "date") {
+    type = $translate.instant('Format.Date');
+    if (type == 'Format.Date')
+      type = 'DD/MM/YYYY'
+  }
+
+  else if (type == "time" || type == "time-local") {
+    type = $translate.instant('Format.Hour');
+    if (type == 'Format.Hour')
+      type = 'HH:mm:ss'
+  }
+
+  else if (type == "month") {
+    type = 'MMMM';
+  }
+
+  else if (type == "number") {
+    type = $translate.instant('Format.Decimal');
+    if (type == 'Format.Decimal')
+      type = '0,00'
+  }
+
+  else if (type == "money") {
+    type = $translate.instant('Format.Money');
+    if (type == 'Format.Money')
+      type = '#.#00,00'
+  }
+
+  else if (type == "integer") {
+    type = '0';
+  }
+
+  else if (type == "week") {
+    type = 'dddd';
+  }
+
+  else if (type == "tel") {
+    type = '(00) 00000-0000;0';
+  }
+
+  else if (type == "text") {
+    type = '';
+  }
+
+  return type;
+}
